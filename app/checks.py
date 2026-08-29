@@ -52,3 +52,58 @@ def check_warning(ocr_text: str) -> FieldCheck:
     return FieldCheck(MISMATCH, f"Warning statement present but deviates from the required text "
                       f"({sim:.0f}% similar). 16.21 requires the exact statement.",
                       expected=WARNING_CANONICAL, found=region[: len(WARNING_CANONICAL)])
+
+
+def _norm_brand(s: str) -> str:
+    s = s.replace("’", "'").replace("‘", "'")
+    return _squash(s).casefold()
+
+
+def check_brand(expected: str, ocr_text: str) -> FieldCheck:
+    """Line-oriented: the brand is one line of the label, compared as a unit (R6)."""
+    want = _norm_brand(expected)
+    lines = [_norm_brand(l) for l in ocr_text.splitlines() if l.strip()]
+    best_line, best = "", 0.0
+    whole_word = re.compile(rf"\b{re.escape(want)}\b")
+    for line in lines:
+        # Whole-word substring = the brand appears intact ("STONE'S THROW BREWING CO").
+        # Plain ratio otherwise — partial_ratio would wrongly score "SUNSET ALES"
+        # as a perfect match for "Sunset Ale".
+        score = 100.0 if whole_word.search(line) else fuzz.ratio(want, line)
+        if score > best:
+            best, best_line = score, line
+    if best >= 97:
+        exact_case = any(expected in l for l in ocr_text.splitlines())
+        note = "" if exact_case else " (capitalization differs from application — same brand)"
+        return FieldCheck(MATCH, f"Brand name found on label{note}.", found=best_line)
+    if best >= 85:
+        return FieldCheck(REVIEW, f"Label text '{best_line}' is close to but not identical to "
+                          f"application brand '{expected}' ({best:.0f}% similar). Agent judgment.",
+                          expected=expected, found=best_line)
+    return FieldCheck(MISSING, f"Brand '{expected}' not found on label.", expected=expected)
+
+
+_ABV_RE = re.compile(
+    r"(?:alc(?:ohol)?\.?\s*)?(\d{1,2}(?:\.\d{1,2})?)\s*%"
+    r"(?:\s*(?:alc[./]?\s*)?(?:by\s+)?vol(?:ume)?\.?)?",
+    re.IGNORECASE)
+
+
+def parse_abv(text: str) -> float | None:
+    t = _squash(text)
+    for m in _ABV_RE.finditer(t):
+        window = t[max(0, m.start() - 12): m.end() + 12].casefold()
+        if "alc" in window or "vol" in window:
+            return float(m.group(1))
+    return None
+
+
+def check_abv(expected: float, ocr_text: str) -> FieldCheck:
+    found = parse_abv(ocr_text)
+    if found is None:
+        return FieldCheck(MISSING, "No alcohol content statement found on label.",
+                          expected=f"{expected}%")
+    if abs(found - expected) < 0.05:
+        return FieldCheck(MATCH, f"ABV on label ({found}%) matches application.", found=f"{found}%")
+    return FieldCheck(MISMATCH, f"Label states {found}% ABV; application states {expected}%.",
+                      expected=f"{expected}%", found=f"{found}%")

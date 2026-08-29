@@ -107,3 +107,15 @@ def check_abv(expected: float, ocr_text: str) -> FieldCheck:
         return FieldCheck(MATCH, f"ABV on label ({found}%) matches application.", found=f"{found}%")
     return FieldCheck(MISMATCH, f"Label states {found}% ABV; application states {expected}%.",
                       expected=f"{expected}%", found=f"{found}%")
+
+
+def verify_label(app_data, ocr_text: str):
+    """Aggregate per-field checks. Never auto-rejects: any problem -> NEEDS REVIEW (R10)."""
+    from app.models import LabelResult
+    fields: dict[str, FieldCheck] = {"brand_name": check_brand(app_data.brand_name, ocr_text)}
+    if app_data.abv is not None:
+        fields["abv"] = check_abv(app_data.abv, ocr_text)
+    fields["warning"] = check_warning(ocr_text)
+    overall = "PASS" if all(f.status == MATCH for f in fields.values()) else "NEEDS REVIEW"
+    return LabelResult(application_id=app_data.application_id, overall=overall,
+                       fields=fields, ocr_text=ocr_text)

@@ -62,3 +62,23 @@ def test_abv_match_and_mismatch():
 
 def test_abv_absent_is_missing():
     assert check_abv(5.9, "SUNSET ALE 12 FL OZ").status == "MISSING"
+
+
+from app.checks import verify_label
+from app.models import ApplicationData
+
+def test_verify_label_all_match_is_pass():
+    r = verify_label(ApplicationData(brand_name="Sunset Ale", abv=5.9),
+                     "SUNSET ALE\n5.9% ALC/VOL\n" + GOOD)
+    assert r.overall == "PASS"
+    assert set(r.fields) == {"brand_name", "abv", "warning"}
+
+def test_any_problem_is_needs_review_never_autoreject():
+    r = verify_label(ApplicationData(brand_name="Sunset Ale", abv=5.9),
+                     "SUNSET ALE\n6.2% ALC/VOL\n" + GOOD)
+    assert r.overall == "NEEDS REVIEW"  # Dave (R10): tool advises, agent decides
+
+def test_abv_omitted_from_application_skips_abv_check():
+    r = verify_label(ApplicationData(brand_name="Sunset Ale", abv=None),
+                     "SUNSET ALE\n" + GOOD)
+    assert "abv" not in r.fields and r.overall == "PASS"

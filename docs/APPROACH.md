@@ -47,6 +47,13 @@ cannot perform.
 - No authentication or persistence — prototype scope per Marcus ("don't do anything
   crazy... not storing anything sensitive").
 
+## Deployment
+
+The prototype runs on infrastructure I operate: a 4-node Proxmox/K3s HA cluster, 2 app
+replicas with liveness/readiness probes and resource limits (`deploy/k8s.yaml`), exposed
+through a Cloudflare tunnel — outbound-only connections, no inbound ports, TLS at the
+edge. The same container image runs unchanged in Docker anywhere (see Quickstart).
+
 ## Path to production
 
 - **Azure:** Treasury runs Azure (per Marcus). The container deploys unchanged to Azure

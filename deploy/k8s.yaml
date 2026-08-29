@@ -1,0 +1,51 @@
+# TTB Label Check — self-hosted deployment (K3s + existing Cloudflare tunnel).
+# Isolated namespace; nothing else lives here and no secrets beyond the pull secret.
+# Public URL: https://ttb.wannatapthat.com via the wannatapthat cloudflared tunnel
+# (ingress rule added to configmap/cloudflared-config in the automation namespace).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ttb
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ttb-label-check
+  namespace: ttb
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: ttb-label-check}
+  template:
+    metadata:
+      labels: {app: ttb-label-check}
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull
+      containers:
+        - name: web
+          image: ghcr.io/saltxd/ttb-label-check:746741b
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet: {path: /health, port: 8080}
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /health, port: 8080}
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests: {cpu: 250m, memory: 256Mi}
+            limits: {cpu: "1", memory: 768Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ttb-label-check
+  namespace: ttb
+spec:
+  selector: {app: ttb-label-check}
+  ports:
+    - port: 8080
+      targetPort: 8080

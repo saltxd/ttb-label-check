@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Batch Label Check</title><link rel="stylesheet" href="/static/style.css"></head><body>
+<main>
+  <h1>Batch Label Check</h1>
+  <p class="tagline">One CSV of applications, plus the label images. Images match rows by filename
+     (e.g., <code>COLA-12345.png</code> matches the row with application_id <code>COLA-12345</code>).</p>
+  <form action="/batch" method="post" enctype="multipart/form-data">
+    <label>Applications CSV (columns: application_id, brand_name, abv)
+      <input type="file" name="csv_file" accept=".csv,text/csv" required></label>
+    <label>Label images (select all at once)
+      <input type="file" name="images" accept="image/*" multiple required></label>
+    {% if ai_available %}<label class="row"><input type="checkbox" name="use_ai" value="true"> Use AI assist for hard-to-read photos (slower)</label>{% endif %}
+    <button type="submit">Check all labels</button>
+  </form>
+  <p><a href="/">&larr; Single label</a></p>
+</main></body></html>

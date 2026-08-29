@@ -1,0 +1,4 @@
+application_id,brand_name,abv
+good_label,Sunset Ale,5.9
+case_violation,Sunset Ale,5.9
+abv_mismatch,Sunset Ale,5.9

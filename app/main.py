@@ -42,6 +42,35 @@ def _run_one(image: bytes, media_type: str, data: ApplicationData, use_ai: bool)
     return result
 
 
+@app.get("/batch", response_class=HTMLResponse)
+def batch_form(request: Request):
+    return templates.TemplateResponse(request, "batch.html",
+                                      {"ai_available": ai.ai_available()})
+
+
+@app.post("/batch", response_class=HTMLResponse)
+async def batch(request: Request, csv_file: UploadFile = File(...),
+                images: list[UploadFile] = File(...), use_ai: bool = Form(False)):
+    import csv
+    import io
+    rows = {r["application_id"].strip(): r for r in
+            csv.DictReader(io.StringIO((await csv_file.read()).decode("utf-8-sig")))}
+    results, orphans = [], []
+    for img in images:
+        stem = Path(img.filename).stem
+        row = rows.get(stem)
+        if row is None:
+            orphans.append(img.filename)
+            continue
+        data = ApplicationData(application_id=stem, brand_name=row["brand_name"].strip(),
+                               abv=float(row["abv"]) if row.get("abv", "").strip() else None)
+        results.append(_run_one(await img.read(), img.content_type or "image/png",
+                                data, use_ai))
+    results.sort(key=lambda r: r.overall == "PASS")  # problems first — agents triage top-down
+    return templates.TemplateResponse(request, "_result.html",
+                                      {"results": results, "orphans": orphans})
+
+
 @app.post("/verify", response_class=HTMLResponse)
 async def verify(request: Request, label_image: UploadFile = File(...),
                  brand_name: str = Form(...), abv: str = Form(""),

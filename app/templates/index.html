@@ -1,0 +1,15 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Label Check</title><link rel="stylesheet" href="/static/style.css"></head><body>
+<main>
+  <h1>Label Check</h1>
+  <p class="tagline">Upload a label. Enter what the application says. We compare them.</p>
+  <form action="/verify" method="post" enctype="multipart/form-data">
+    <label>Label image <input type="file" name="label_image" accept="image/*" required></label>
+    <label>Brand name on application <input type="text" name="brand_name" required placeholder="e.g., Sunset Ale"></label>
+    <label>Alcohol content (%) <input type="text" name="abv" inputmode="decimal" placeholder="e.g., 5.9 (optional)"></label>
+    {% if ai_available %}<label class="row"><input type="checkbox" name="use_ai" value="true"> Use AI assist for hard-to-read photos (slower)</label>{% endif %}
+    <button type="submit">Check this label</button>
+  </form>
+  <p><a href="/batch">Checking many labels at once? Batch upload &rarr;</a></p>
+</main></body></html>

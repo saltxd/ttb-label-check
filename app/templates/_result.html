@@ -1,0 +1,18 @@
+{% if orphans %}<section class="result review"><h2>Unmatched images</h2>
+<p>These files had no application row in the CSV (images match rows by filename): {{ orphans|join(', ') }}</p></section>{% endif %}
+{% for r in results %}
+<section class="result {{ 'pass' if r.overall == 'PASS' else 'review' }}">
+  <h2>{{ r.application_id or 'Result' }}: {{ r.overall }}</h2>
+  <table>
+    {% for name, f in r.fields.items() %}
+    <tr class="{{ f.status|lower }}">
+      <th>{{ {'brand_name':'Brand name','abv':'Alcohol content','warning':'Government warning'}[name] }}</th>
+      <td class="status">{{ f.status }}</td><td>{{ f.detail }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="meta">Checked in {{ r.elapsed_ms }} ms{{ ' · AI assist used' if r.ai_assist_used }}.
+     This tool advises — the reviewing agent makes the final call.</p>
+</section>
+{% endfor %}
+<p><a href="/">&larr; Check another label</a></p>

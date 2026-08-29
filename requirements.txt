@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+jinja2
+python-multipart
+pytesseract
+opencv-python-headless
+pillow
+rapidfuzz
+anthropic
+pytest

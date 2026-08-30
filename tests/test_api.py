@@ -52,6 +52,19 @@ def test_batch_two_labels():
     assert r.text.index("NEEDS REVIEW") < r.text.index("PASS")
 
 
+def test_verify_rejects_oversize_image():
+    big = b"\x89PNG" + b"\x00" * (10 * 1024 * 1024 + 10)
+    r = client.post("/verify", data={"brand_name": "X"},
+                    files={"label_image": ("l.png", big, "image/png")})
+    assert r.status_code == 413
+
+
+def test_verify_bad_abv_is_400_not_500():
+    r = client.post("/verify", data={"brand_name": "X", "abv": "five point nine"},
+                    files={"label_image": ("l.png", (SAMPLES / "good_label.png").read_bytes(), "image/png")})
+    assert r.status_code == 400
+
+
 def test_batch_image_without_csv_row_reported():
     files = [("images", ("mystery.png", (SAMPLES / "good_label.png").read_bytes(), "image/png"))]
     r = client.post("/batch",

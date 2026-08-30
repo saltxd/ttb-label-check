@@ -1,7 +1,6 @@
-# TTB Label Check — self-hosted deployment (K3s + existing Cloudflare tunnel).
+# TTB Label Check — self-hosted deployment (K3s behind a Cloudflare tunnel).
 # Isolated namespace; nothing else lives here and no secrets beyond the pull secret.
-# Public URL: https://ttb.wannatapthat.com via the wannatapthat cloudflared tunnel
-# (ingress rule added to configmap/cloudflared-config in the automation namespace).
+# Public URL: https://ttb.chainward.ai (tunnel ingress managed in Cloudflare Zero Trust).
 apiVersion: v1
 kind: Namespace
 metadata:

@@ -16,6 +16,25 @@ app = FastAPI(title="TTB Label Check")
 app.mount("/static", StaticFiles(directory=BASE / "static"), name="static")
 templates = Jinja2Templates(directory=BASE / "templates")
 ALLOWED = {"image/png", "image/jpeg", "image/webp"}
+MAX_IMAGE_BYTES = 10 * 1024 * 1024  # public endpoint: bound memory per upload
+MAX_BATCH_IMAGES = 400              # Sarah's 200-300 dump, with headroom
+
+
+def _parse_abv_field(raw: str) -> float | None:
+    raw = raw.strip()
+    if not raw:
+        return None
+    try:
+        return float(raw)
+    except ValueError:
+        raise HTTPException(400, "Alcohol content must be a number, e.g. 5.9")
+
+
+async def _read_image(upload: UploadFile) -> bytes:
+    data = await upload.read(MAX_IMAGE_BYTES + 1)
+    if len(data) > MAX_IMAGE_BYTES:
+        raise HTTPException(413, "Image too large (10 MB max)")
+    return data
 
 
 @app.get("/health")
@@ -53,6 +72,8 @@ async def batch(request: Request, csv_file: UploadFile = File(...),
                 images: list[UploadFile] = File(...), use_ai: bool = Form(False)):
     import csv
     import io
+    if len(images) > MAX_BATCH_IMAGES:
+        raise HTTPException(413, f"Too many images (max {MAX_BATCH_IMAGES} per batch)")
     rows = {r["application_id"].strip(): r for r in
             csv.DictReader(io.StringIO((await csv_file.read()).decode("utf-8-sig")))}
     results, orphans = [], []
@@ -63,8 +84,8 @@ async def batch(request: Request, csv_file: UploadFile = File(...),
             orphans.append(img.filename)
             continue
         data = ApplicationData(application_id=stem, brand_name=row["brand_name"].strip(),
-                               abv=float(row["abv"]) if row.get("abv", "").strip() else None)
-        results.append(_run_one(await img.read(), img.content_type or "image/png",
+                               abv=_parse_abv_field(row.get("abv", "")))
+        results.append(_run_one(await _read_image(img), img.content_type or "image/png",
                                 data, use_ai))
     results.sort(key=lambda r: r.overall == "PASS")  # problems first — agents triage top-down
     return templates.TemplateResponse(request, "_result.html",
@@ -77,7 +98,6 @@ async def verify(request: Request, label_image: UploadFile = File(...),
                  use_ai: bool = Form(False)):
     if label_image.content_type not in ALLOWED:
         raise HTTPException(400, "Upload a PNG, JPEG, or WebP image")
-    data = ApplicationData(brand_name=brand_name.strip(),
-                           abv=float(abv) if abv.strip() else None)
-    result = _run_one(await label_image.read(), label_image.content_type, data, use_ai)
+    data = ApplicationData(brand_name=brand_name.strip(), abv=_parse_abv_field(abv))
+    result = _run_one(await _read_image(label_image), label_image.content_type, data, use_ai)
     return templates.TemplateResponse(request, "_result.html", {"results": [result]})

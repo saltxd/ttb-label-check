@@ -1,9 +1,10 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Label Check</title><link rel="stylesheet" href="/static/style.css?v=3"></head><body>
+<title>Label Check</title><link rel="stylesheet" href="/static/style.css?v=3">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg"></head><body>
 <header class="site"><div class="wrap">
   <h1>Label Check</h1>
-  <span class="sub">COLA label verification prototype &middot; 27 CFR Part 16</span>
+  <span class="sub">Label verification prototype &middot; 27 CFR Part 16</span>
 </div></header>
 <main>
   <p class="lede">Upload a label image, enter what the application says, and get a field-by-field
@@ -46,8 +47,11 @@
     if (input.files.length) text.innerHTML = '<span class="file-name">' + input.files[0].name + '</span> selected';
   });
   ['dragover','dragenter'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('drag'); }));
-  ['dragleave','drop'].forEach(e => drop.addEventListener(e, ev => { drop.classList.remove('drag'); }));
-  drop.addEventListener('drop', ev => { ev.preventDefault(); input.files = ev.dataTransfer.files; input.dispatchEvent(new Event('change')); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
+  drop.addEventListener('drop', ev => {
+    ev.preventDefault(); drop.classList.remove('drag');
+    if (ev.dataTransfer.files.length) { input.files = ev.dataTransfer.files; input.dispatchEvent(new Event('change')); }
+  });
   form.addEventListener('submit', () => { btn.disabled = true; btn.textContent = 'Checking…'; });
 </script>
 </body></html>

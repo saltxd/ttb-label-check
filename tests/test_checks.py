@@ -22,8 +22,22 @@ def test_title_case_prefix_is_review_not_match():
     assert r.status == "REVIEW"
     assert "capital" in r.detail.lower()
 
-def test_reworded_warning_is_mismatch():
+def test_slightly_deviating_warning_is_review_not_hard_fail():
+    # A tiny wording change and an OCR misread look identical at this distance;
+    # both go to a human with the diff shown (real-label test, 2026-08-30).
     r = check_warning(GOOD.replace("birth defects", "health issues"))
+    assert r.status == "REVIEW"
+    assert r.expected and r.found
+
+def test_ocr_garbled_but_correct_warning_is_review():
+    garbled = (GOOD.replace("Surgeon", "Surgeoh")
+                   .replace("pregnancy", "preghavicy")
+                   .replace("impairs", "l!apairs"))
+    r = check_warning(garbled)
+    assert r.status == "REVIEW"
+
+def test_substantially_wrong_warning_is_mismatch():
+    r = check_warning("GOVERNMENT WARNING: drinking may be bad for you and others around you.")
     assert r.status == "MISMATCH"
 
 def test_absent_warning_is_missing():

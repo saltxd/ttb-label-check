@@ -49,6 +49,14 @@ def check_warning(ocr_text: str) -> FieldCheck:
                           expected="GOVERNMENT WARNING:", found=region[:20])
     sim = fuzz.ratio(_squash(region[: len(WARNING_CANONICAL)]).casefold(),
                      _squash(WARNING_CANONICAL).casefold())
+    if sim >= 90:
+        # This close, the tool cannot distinguish an applicant's wording error
+        # from an OCR misread of correct text ("SURGEOH", "PREGHAVICY"). Either
+        # way a human must look at the label — so advise, don't verdict (R10).
+        return FieldCheck(REVIEW, f"Warning text differs slightly from the required statement "
+                          f"({sim:.0f}% similar) — likely OCR misreading, possibly a wording "
+                          f"error. Compare the highlighted text against the label image.",
+                          expected=WARNING_CANONICAL, found=region[: len(WARNING_CANONICAL)])
     return FieldCheck(MISMATCH, f"Warning statement present but deviates from the required text "
                       f"({sim:.0f}% similar). 16.21 requires the exact statement.",
                       expected=WARNING_CANONICAL, found=region[: len(WARNING_CANONICAL)])

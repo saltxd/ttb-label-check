@@ -23,7 +23,7 @@ spec:
         - name: ghcr-pull
       containers:
         - name: web
-          image: ghcr.io/saltxd/ttb-label-check:068f1ab
+          image: ghcr.io/saltxd/ttb-label-check:d4aedc3
           ports:
             - containerPort: 8080
           readinessProbe:

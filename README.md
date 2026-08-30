@@ -5,7 +5,9 @@ brand name, alcohol content, and the government health warning statement require
 27 CFR Part 16. Built for the Treasury IT Specialist (AI) take-home assessment.
 
 **Live prototype:** https://ttb.chainward.ai — self-hosted on a 4-node K3s
-cluster (2 replicas) behind a Cloudflare tunnel; deployment manifests in `deploy/k8s.yaml`.
+cluster I operate (2 replicas) behind a Cloudflare tunnel; deployment manifests in
+`deploy/k8s.yaml`. (`chainward.ai` is simply a domain I own used for hosting — this
+prototype is standalone and unrelated to anything else on it.)
 
 Single-label checks return in well under a second on typical images (measured 0.2–2 s
 end-to-end); batch mode accepts a CSV of applications plus hundreds of label images at

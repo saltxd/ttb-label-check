@@ -8,8 +8,16 @@
     <label>Label image <input type="file" name="label_image" accept="image/*" required></label>
     <label>Brand name on application <input type="text" name="brand_name" required placeholder="e.g., Sunset Ale"></label>
     <label>Alcohol content (%) <input type="text" name="abv" inputmode="decimal" placeholder="e.g., 5.9 (optional)"></label>
-    {% if ai_available %}<label class="row"><input type="checkbox" name="use_ai" value="true"> Use AI assist for hard-to-read photos (slower)</label>{% endif %}
+    {% if ai_available %}<label class="row"><input type="checkbox" name="use_ai" value="true"> AI assist if the local scan can't read the photo (slower; sends the image to Claude)</label>{% endif %}
     <button type="submit">Check this label</button>
   </form>
+  <section class="demos">
+    <h2>Or try a sample</h2>
+    <div class="demo-row">
+      <form action="/demo/pass" method="post"><button class="demo">Clean label &rarr; PASS</button></form>
+      <form action="/demo/warning-case" method="post"><button class="demo">Title-case warning &rarr; REVIEW</button></form>
+      <form action="/demo/abv-mismatch" method="post"><button class="demo">Wrong ABV &rarr; MISMATCH</button></form>
+    </div>
+  </section>
   <p><a href="/batch">Checking many labels at once? Batch upload &rarr;</a></p>
 </main></body></html>

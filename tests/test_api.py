@@ -35,6 +35,37 @@ def test_verify_rejects_non_image():
     assert r.status_code == 400
 
 
+def test_demo_buttons_on_home_page():
+    html = client.get("/").text
+    assert "/demo/pass" in html and "/demo/warning-case" in html and "/demo/abv-mismatch" in html
+
+
+def test_demo_routes_run_end_to_end():
+    assert "PASS" in client.post("/demo/pass").text
+    assert "NEEDS REVIEW" in client.post("/demo/warning-case").text
+    assert "NEEDS REVIEW" in client.post("/demo/abv-mismatch").text
+    assert client.post("/demo/nope").status_code == 404
+
+
+def test_result_shows_expected_vs_found_on_mismatch():
+    r = client.post("/demo/abv-mismatch").text
+    assert "Application:" in r and "Label:" in r and "5.9%" in r and "6.2%" in r
+
+
+def test_ai_assist_triggers_on_garbage_ocr(monkeypatch):
+    from app import main as m
+    monkeypatch.setattr(m, "extract_text", lambda b: "x" * 200)  # junk, brand+warning MISSING
+    monkeypatch.setattr(m.ai, "ai_available", lambda: True)
+    calls = {}
+    def fake_ai(image, media_type):
+        calls["hit"] = True
+        return "SUNSET ALE\n5.9% ALC/VOL"
+    monkeypatch.setattr(m.ai, "ai_extract_text", fake_ai)
+    from app.models import ApplicationData
+    result = m._run_one(b"img", "image/png", ApplicationData(brand_name="Sunset Ale", abv=5.9), True)
+    assert calls.get("hit") and result.ai_assist_used
+
+
 def test_batch_form_serves():
     assert "Check all labels" in client.get("/batch").text
 

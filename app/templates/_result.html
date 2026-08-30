@@ -7,7 +7,13 @@
     {% for name, f in r.fields.items() %}
     <tr class="{{ f.status|lower }}">
       <th>{{ {'brand_name':'Brand name','abv':'Alcohol content','warning':'Government warning'}[name] }}</th>
-      <td class="status">{{ f.status }}</td><td>{{ f.detail }}</td>
+      <td class="status">{{ f.status }}</td>
+      <td>{{ f.detail }}
+        {% if f.status != 'MATCH' %}
+          {% if f.expected %}<div class="ev"><span>Application:</span> {{ f.expected|truncate(220) }}</div>{% endif %}
+          {% if f.found %}<div class="ev"><span>Label:</span> {{ f.found|truncate(220) }}</div>{% endif %}
+        {% endif %}
+      </td>
     </tr>
     {% endfor %}
   </table>

@@ -52,13 +52,39 @@ def _run_one(image: bytes, media_type: str, data: ApplicationData, use_ai: bool)
     start = time.monotonic()
     used_ai = False
     text = extract_text(image)
-    # AI assist only when asked AND local OCR came up near-empty (hard photo).
-    if use_ai and ai.ai_available() and len(text.strip()) < 40:
-        text, used_ai = ai.ai_extract_text(image, media_type), True
     result = verify_label(data, text)
+    # AI assist when asked AND the local scan failed the photo: near-empty OCR,
+    # or 200 chars of glare-junk that matched neither brand nor warning.
+    local_failed = (len(text.strip()) < 40
+                    or (result.fields["brand_name"].status == "MISSING"
+                        and result.fields["warning"].status == "MISSING"))
+    if use_ai and ai.ai_available() and local_failed:
+        try:
+            result = verify_label(data, ai.ai_extract_text(image, media_type))
+            used_ai = True
+        except Exception:
+            pass  # AI assist is best-effort; the local result stands
     result.elapsed_ms = int((time.monotonic() - start) * 1000)
     result.ai_assist_used = used_ai
     return result
+
+
+DEMOS = {
+    "pass": ("good_label.png", "A clean label that matches its application"),
+    "warning-case": ("case_violation.png", "Warning text correct but 'Government Warning' in title case"),
+    "abv-mismatch": ("abv_mismatch.png", "Label says 6.2%, application says 5.9%"),
+}
+
+
+@app.post("/demo/{name}", response_class=HTMLResponse)
+def demo(request: Request, name: str):
+    if name not in DEMOS:
+        raise HTTPException(404, "Unknown demo")
+    image = (Path(__file__).resolve().parent.parent / "samples" / DEMOS[name][0]).read_bytes()
+    data = ApplicationData(application_id=f"demo: {DEMOS[name][1]}",
+                           brand_name="Sunset Ale", abv=5.9)
+    return templates.TemplateResponse(request, "_result.html",
+                                      {"results": [_run_one(image, "image/png", data, False)]})
 
 
 @app.get("/batch", response_class=HTMLResponse)

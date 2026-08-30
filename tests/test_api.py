@@ -54,7 +54,7 @@ def test_result_shows_expected_vs_found_on_mismatch():
 
 def test_ai_assist_triggers_on_garbage_ocr(monkeypatch):
     from app import main as m
-    monkeypatch.setattr(m, "extract_text", lambda b: "x" * 200)  # junk, brand+warning MISSING
+    monkeypatch.setattr(m, "extract_text_variants", lambda b: iter(["x" * 200]))  # junk, brand+warning MISSING
     monkeypatch.setattr(m.ai, "ai_available", lambda: True)
     calls = {}
     def fake_ai(image, media_type):

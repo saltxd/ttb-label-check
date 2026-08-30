@@ -1,17 +1,27 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Result — Label Check</title><link rel="stylesheet" href="/static/style.css?v=2"></head><body>
+<title>Result — Label Check</title><link rel="stylesheet" href="/static/style.css?v=3"></head><body>
+<header class="site"><div class="wrap">
+  <h1>Label Check</h1>
+  <span class="sub">Verification result</span>
+</div></header>
 <main>
-{% if orphans %}<section class="result review"><h2>Unmatched images</h2>
-<p>These files had no application row in the CSV (images match rows by filename): {{ orphans|join(', ') }}</p></section>{% endif %}
+{% if orphans %}<section class="result review">
+  <div class="verdict"><span class="badge">&#9888;</span> Unmatched images</div>
+  <div class="body"><p>These files had no application row in the CSV (images match rows by filename): {{ orphans|join(', ') }}</p></div>
+</section>{% endif %}
 {% for r in results %}
 <section class="result {{ 'pass' if r.overall == 'PASS' else 'review' }}">
-  <h2>{{ r.application_id or 'Result' }}: {{ r.overall }}</h2>
+  <div class="verdict">
+    <span class="badge">{{ '&#10003;'|safe if r.overall == 'PASS' else '&#9888;'|safe }}</span>
+    {{ r.application_id or 'Result' }}: {{ r.overall }}
+  </div>
+  <div class="body">
   <table>
     {% for name, f in r.fields.items() %}
     <tr class="{{ f.status|lower }}">
       <th>{{ {'brand_name':'Brand name','abv':'Alcohol content','warning':'Government warning'}[name] }}</th>
-      <td class="status">{{ f.status }}</td>
+      <td><span class="pill">{{ f.status }}</span></td>
       <td>{{ f.detail }}
         {% if f.status != 'MATCH' %}
           {% if f.expected %}<div class="ev"><span>Application:</span> {{ f.expected|truncate(220) }}</div>{% endif %}
@@ -21,9 +31,11 @@
     </tr>
     {% endfor %}
   </table>
+  </div>
   <p class="meta">Checked in {{ r.elapsed_ms }} ms{{ ' · AI assist used' if r.ai_assist_used }}.
      This tool advises — the reviewing agent makes the final call.</p>
 </section>
 {% endfor %}
-<p><a href="/">&larr; Check another label</a></p>
-</main></body></html>
+<p class="foot-link"><a href="/">&larr; Check another label</a></p>
+</main>
+</body></html>

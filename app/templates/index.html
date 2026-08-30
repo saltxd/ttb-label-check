@@ -1,23 +1,53 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Label Check</title><link rel="stylesheet" href="/static/style.css?v=2"></head><body>
-<main>
+<title>Label Check</title><link rel="stylesheet" href="/static/style.css?v=3"></head><body>
+<header class="site"><div class="wrap">
   <h1>Label Check</h1>
-  <p class="tagline">Upload a label. Enter what the application says. We compare them.</p>
-  <form action="/verify" method="post" enctype="multipart/form-data">
-    <label>Label image <input type="file" name="label_image" accept="image/*" required></label>
-    <label>Brand name on application <input type="text" name="brand_name" required placeholder="e.g., Sunset Ale"></label>
-    <label>Alcohol content (%) <input type="text" name="abv" inputmode="decimal" placeholder="e.g., 5.9 (optional)"></label>
-    {% if ai_available %}<label class="row"><input type="checkbox" name="use_ai" value="true"> AI assist if the local scan can't read the photo (slower; sends the image to Claude)</label>{% endif %}
-    <button type="submit">Check this label</button>
-  </form>
-  <section class="demos">
+  <span class="sub">COLA label verification prototype &middot; 27 CFR Part 16</span>
+</div></header>
+<main>
+  <p class="lede">Upload a label image, enter what the application says, and get a field-by-field
+     comparison in seconds. The tool advises — the reviewing agent decides.</p>
+  <section class="card">
+    <form class="main-form" action="/verify" method="post" enctype="multipart/form-data" id="verify-form">
+      <label class="drop" id="drop">
+        <input type="file" name="label_image" accept="image/*" required id="file-input">
+        <span class="big" id="drop-text">Drop a label image here, or <u>browse</u></span>
+        <span class="sub">PNG, JPEG, or WebP &middot; 10 MB max &middot; processed locally, never stored</span>
+      </label>
+      <div class="two-col">
+        <label class="field">Brand name on application
+          <input type="text" name="brand_name" required placeholder="e.g., Sunset Ale">
+        </label>
+        <label class="field">Alcohol content (%) <span class="hint">optional</span>
+          <input type="text" name="abv" inputmode="decimal" placeholder="e.g., 5.9">
+        </label>
+      </div>
+      {% if ai_available %}<label class="row-check"><input type="checkbox" name="use_ai" value="true"> AI assist if the local scan can't read the photo (slower; sends the image to Claude)</label>{% endif %}
+      <button type="submit" class="primary" id="submit-btn">Check this label</button>
+    </form>
+  </section>
+  <section class="samples">
     <h2>Or try a sample</h2>
-    <div class="demo-row">
-      <form action="/demo/pass" method="post"><button class="demo">Clean label &rarr; PASS</button></form>
-      <form action="/demo/warning-case" method="post"><button class="demo">Title-case warning &rarr; REVIEW</button></form>
-      <form action="/demo/abv-mismatch" method="post"><button class="demo">Wrong ABV &rarr; MISMATCH</button></form>
+    <div class="chips">
+      <form action="/demo/pass" method="post"><button class="chip">Clean label &rarr; PASS</button></form>
+      <form action="/demo/warning-case" method="post"><button class="chip">Title-case warning &rarr; REVIEW</button></form>
+      <form action="/demo/abv-mismatch" method="post"><button class="chip">Wrong ABV &rarr; MISMATCH</button></form>
     </div>
   </section>
-  <p><a href="/batch">Checking many labels at once? Batch upload &rarr;</a></p>
-</main></body></html>
+  <p class="foot-link"><a href="/batch">Checking many labels at once? Batch upload &rarr;</a></p>
+</main>
+<footer class="site">Prototype for the TTB take-home assessment. Local OCR by default; nothing uploaded is stored.</footer>
+<script>
+  const input = document.getElementById('file-input'), drop = document.getElementById('drop'),
+        text = document.getElementById('drop-text'), form = document.getElementById('verify-form'),
+        btn = document.getElementById('submit-btn');
+  input.addEventListener('change', () => {
+    if (input.files.length) text.innerHTML = '<span class="file-name">' + input.files[0].name + '</span> selected';
+  });
+  ['dragover','dragenter'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(e => drop.addEventListener(e, ev => { drop.classList.remove('drag'); }));
+  drop.addEventListener('drop', ev => { ev.preventDefault(); input.files = ev.dataTransfer.files; input.dispatchEvent(new Event('change')); });
+  form.addEventListener('submit', () => { btn.disabled = true; btn.textContent = 'Checking…'; });
+</script>
+</body></html>

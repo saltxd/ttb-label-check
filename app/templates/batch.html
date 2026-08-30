@@ -1,17 +1,31 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Batch Label Check</title><link rel="stylesheet" href="/static/style.css?v=2"></head><body>
+<title>Batch — Label Check</title><link rel="stylesheet" href="/static/style.css?v=3"></head><body>
+<header class="site"><div class="wrap">
+  <h1>Label Check</h1>
+  <span class="sub">Batch verification &middot; 27 CFR Part 16</span>
+</div></header>
 <main>
-  <h1>Batch Label Check</h1>
-  <p class="tagline">One CSV of applications, plus the label images. Images match rows by filename
-     (e.g., <code>COLA-12345.png</code> matches the row with application_id <code>COLA-12345</code>).</p>
-  <form action="/batch" method="post" enctype="multipart/form-data">
-    <label>Applications CSV (columns: application_id, brand_name, abv)
-      <input type="file" name="csv_file" accept=".csv,text/csv" required></label>
-    <label>Label images (select all at once)
-      <input type="file" name="images" accept="image/*" multiple required></label>
-    {% if ai_available %}<label class="row"><input type="checkbox" name="use_ai" value="true"> Use AI assist for hard-to-read photos (slower)</label>{% endif %}
-    <button type="submit">Check all labels</button>
-  </form>
-  <p><a href="/">&larr; Single label</a></p>
-</main></body></html>
+  <p class="lede">One CSV of applications plus the label images. Images match rows by filename —
+     <code>COLA-12345.png</code> pairs with the row whose application_id is <code>COLA-12345</code>.</p>
+  <section class="card">
+    <form class="main-form" action="/batch" method="post" enctype="multipart/form-data" id="batch-form">
+      <label class="field">Applications CSV <span class="hint">columns: application_id, brand_name, abv</span>
+        <input type="file" name="csv_file" accept=".csv,text/csv" required class="plain">
+      </label>
+      <label class="field">Label images <span class="hint">select all at once — up to 400</span>
+        <input type="file" name="images" accept="image/*" multiple required class="plain">
+      </label>
+      {% if ai_available %}<label class="row-check"><input type="checkbox" name="use_ai" value="true"> AI assist if the local scan can't read a photo (slower; sends images to Claude)</label>{% endif %}
+      <button type="submit" class="primary" id="submit-btn">Check all labels</button>
+    </form>
+  </section>
+  <p class="foot-link"><a href="/">&larr; Single label</a></p>
+</main>
+<footer class="site">Results are sorted problems-first so reviewers triage top-down.</footer>
+<script>
+  document.getElementById('batch-form').addEventListener('submit', () => {
+    const b = document.getElementById('submit-btn'); b.disabled = true; b.textContent = 'Checking…';
+  });
+</script>
+</body></html>

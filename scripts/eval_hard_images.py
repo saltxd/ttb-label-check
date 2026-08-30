@@ -64,11 +64,13 @@ CASES = [
 
 APP = ApplicationData(brand_name="Sunset Ale", abv=5.9)
 
+from app.main import _run_one  # noqa: E402  (evaluate the shipped path, ladder included)
+
 print(f"{'case':<18} {'ms':>6}  {'overall':<13} brand/abv/warning")
 fails = 0
 for name, data in CASES:
     t0 = time.monotonic()
-    result = verify_label(APP, extract_text(data))
+    result = _run_one(data, "image/png", APP, use_ai=False)
     ms = int((time.monotonic() - t0) * 1000)
     statuses = "/".join(result.fields[k].status for k in ("brand_name", "abv", "warning"))
     ok = result.overall == "PASS"

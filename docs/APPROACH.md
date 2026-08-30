@@ -29,6 +29,19 @@ Verdicts are deliberately three-state per field (MATCH / REVIEW / MISMATCH, plus
 REVIEW exists because Dave is right: "technically a mismatch" is not a rejection. The
 title-case warning, the near-miss brand — those go to a human with the evidence shown.
 
+## Robustness against imperfect photos (measured, not claimed)
+
+`scripts/eval_hard_images.py` degrades a known-good label eight ways (rotation,
+JPEG compression, downscaling, noise, glare) and runs the shipped pipeline.
+Single-pass OCR scored 5/8; the shipped preprocessing ladder (Otsu → deskew →
+adaptive threshold → both) scores **7/8 at ~0.75 s worst case**. The residual
+failure (glare combined with rotation) correctly lands in NEEDS REVIEW rather
+than a false verdict, and is the case the opt-in AI assist targets. On a real
+COLA label scan, OCR misreads ("SURGEOH", "PREGHAVICY") are handled by a graded
+verdict: ≥90 %-similar warning text goes to REVIEW with a side-by-side diff,
+because the tool cannot distinguish an applicant's typo from its own misread —
+so it says so instead of guessing.
+
 ## What OCR cannot verify (stated, not hidden)
 
 27 CFR §16.22 requires "GOVERNMENT WARNING" in **bold**, minimum type sizes in

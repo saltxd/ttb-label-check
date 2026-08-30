@@ -20,18 +20,9 @@ tr.review .status { color: #d97706; font-weight: 700; }
 tr.mismatch .status, tr.missing .status { color: #c22525; font-weight: 700; }
 .meta { color: #44586b; font-size: .9rem; }
 .demos { margin-top: 1.4rem; }
-.demos h2 { font-size: 1.05rem; color: #44586b; font-weight: 600; margin-bottom: .6rem; }
-.demo-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .6rem; }
-.demo-row form {
-  background: none; border: 0; padding: 0; margin: 0;
-  display: block; border-radius: 0;
-}
-button.demo {
-  width: 100%; font-size: .95rem; font-weight: 600;
-  padding: .75rem .7rem; background: #fff; color: #1a2530;
-  border: 1px solid #b9c6d2; border-radius: 8px; cursor: pointer;
-}
-button.demo:hover { background: #eef3f8; border-color: #8aa0b5; }
-@media (max-width: 640px) { .demo-row { grid-template-columns: 1fr; } }
+.demos h2 { font-size: 1.05rem; color: #44586b; }
+.demo-row { display: flex; gap: .7rem; flex-wrap: wrap; }
+button.demo { font-size: .95rem; font-weight: 600; padding: .6rem .9rem; background: #eef3f8; color: #1a2530; border: 1px solid #b9c6d2; border-radius: 8px; cursor: pointer; }
+button.demo:hover { background: #dfe9f2; }
 .ev { font-family: ui-monospace, monospace; font-size: .82rem; background: #f2f5f8; border-radius: 6px; padding: .35rem .5rem; margin-top: .35rem; }
 .ev span { font-weight: 700; color: #44586b; font-family: system-ui, sans-serif; }

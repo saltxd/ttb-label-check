@@ -1,3 +1,7 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Result — Label Check</title><link rel="stylesheet" href="/static/style.css?v=2"></head><body>
+<main>
 {% if orphans %}<section class="result review"><h2>Unmatched images</h2>
 <p>These files had no application row in the CSV (images match rows by filename): {{ orphans|join(', ') }}</p></section>{% endif %}
 {% for r in results %}
@@ -22,3 +26,4 @@
 </section>
 {% endfor %}
 <p><a href="/">&larr; Check another label</a></p>
+</main></body></html>

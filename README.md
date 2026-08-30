@@ -1,5 +1,12 @@
 # TTB Label Check
 
+**Evaluating this in 60 seconds:** open [ttb.chainward.ai](https://ttb.chainward.ai) and
+click the three sample buttons — a clean PASS, the title-case warning violation
+(27 CFR 16.22) caught as REVIEW, and a wrong-ABV MISMATCH with the two values side by
+side. Every result footer shows elapsed milliseconds against the 5-second requirement.
+Design rationale, stakeholder-requirement traceability, and measured robustness numbers
+are in [`docs/APPROACH.md`](docs/APPROACH.md).
+
 A prototype that verifies alcohol beverage label images against COLA application data:
 brand name, alcohol content, and the government health warning statement required by
 27 CFR Part 16. Built for the Treasury IT Specialist (AI) take-home assessment.

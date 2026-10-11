@@ -5,6 +5,8 @@ on:
   push: { branches: [main] }
   pull_request:
 permissions: { contents: read, packages: write }
+# a newer push to the same branch cancels an older run, so an older build can never bump after a newer one
+concurrency: { group: "${{ github.workflow }}-${{ github.ref }}", cancel-in-progress: true }
 jobs:
   image:
     uses: saltxd/.github/.github/workflows/build-push.yml@main

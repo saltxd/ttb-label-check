@@ -1,3 +1,5 @@
+# Reference manifests. The running copy is applied by Flux from the cluster GitOps repo, and CI bumps its image tag
+# on every push to main; applying this file by hand is reverted within 10 minutes.
 # TTB Label Check — self-hosted deployment (K3s behind a Cloudflare tunnel).
 # Isolated namespace; nothing else lives here and no secrets beyond the pull secret.
 # Public URL: https://ttb.chainward.ai (tunnel ingress managed in Cloudflare Zero Trust).

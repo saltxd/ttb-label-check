@@ -1,0 +1,26 @@
+# test -> build -> push ghcr.io/saltxd/ttb-label-check:sha-<7> -> bump the image tag in the cluster's GitOps repo
+# (Flux rolls the 2 replicas behind ttb.chainward.ai). Pipeline: saltxd/.github build-push.yml.
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+permissions: { contents: read, packages: write }
+jobs:
+  image:
+    uses: saltxd/.github/.github/workflows/build-push.yml@main
+    with:
+      image: ghcr.io/saltxd/ttb-label-check
+      runtime: python
+      install-cmd: "sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr fonts-dejavu-core && pip install -r requirements.txt"
+      test-cmd: "pytest -q tests"
+      bump-file: apps/ttb/deployment.yaml
+      bump-kind: manifest
+    secrets: { HOMELAB_K3S_DEPLOY_KEY: "${{ secrets.HOMELAB_K3S_DEPLOY_KEY }}" }
+  # Public repo: a leaked key is world-readable the moment it is pushed.
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: gitleaks/gitleaks-action@v2
+        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
